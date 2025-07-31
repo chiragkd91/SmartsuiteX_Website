@@ -45,36 +45,43 @@ jobs:
         if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
     - name: Build SmartSuiteX React application
-      run: cd smartsuitex-website/shadcn-ui && npm run build
+      run: |
+        cd smartsuitex-website/shadcn-ui
+        npm run build
+        echo "Build completed"
+        ls -la dist/
 
     - name: Create deployment package
       run: |
-        mkdir -p deployment
-        # Copy built React app files
-        if [ -d "smartsuitex-website/shadcn-ui/dist" ]; then
-          cp -r smartsuitex-website/shadcn-ui/dist/* deployment/
-          echo "✅ React build files copied successfully"
-        else
-          echo "❌ Build directory not found!"
+        echo "🚀 Creating deployment package..."
+        
+        # Remove any existing deployment directory
+        rm -rf deployment
+        mkdir deployment
+        
+        # Copy ALL built files directly
+        echo "📦 Copying React build files..."
+        cp -r smartsuitex-website/shadcn-ui/dist/* deployment/
+        
+        # Verify critical files exist
+        if [ ! -f "deployment/index.html" ]; then
+          echo "❌ CRITICAL ERROR: index.html not found!"
           exit 1
         fi
-        # Copy web.config for Azure App Service
-        if [ -f "web.config" ]; then
-          cp web.config deployment/
-          echo "✅ web.config copied successfully"
+        
+        if [ ! -f "deployment/web.config" ]; then
+          echo "⚠️ web.config not found in dist, copying from root..."
+          cp web.config deployment/ 2>/dev/null || echo "No web.config in root either"
         fi
-        # Ensure index.html exists
-        if [ -f "deployment/index.html" ]; then
-          echo "✅ index.html found in deployment"
-        else
-          echo "❌ index.html missing in deployment!"
-          exit 1
-        fi
-        # List contents for debugging
-        echo "📁 Deployment directory contents:"
-        ls -la deployment/
-        echo "📄 Files in deployment:"
+        
+        # Final verification
+        echo "✅ Deployment package created!"
+        echo "📁 Package contents:"
         find deployment/ -type f | head -20
+        echo "📊 Package size:"
+        du -sh deployment/
+        echo "🔍 Critical files check:"
+        ls -la deployment/index.html deployment/web.config 2>/dev/null || echo "Some files missing"
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v4
@@ -125,9 +132,23 @@ jobs:
         slot-name: 'Production'
         package: './deployment'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        clean: true
 
-    - name: 'Deployment Status'
+    - name: 'Post-Deployment Verification'
       run: |
-        echo "🚀 Deployment completed!"
-        echo "🌐 Your app should be available at: https://smartsuitex-fegtdvcrhmfsfccw.centralus-01.azurewebsites.net"
-        echo "🔗 Custom domain: https://smartsuitex.com (if DNS is configured)"
+        echo "🚀 Deployment completed successfully!"
+        echo ""
+        echo "📍 Deployment Details:"
+        echo "   • App Name: ${{ env.AZURE_WEBAPP_NAME }}"
+        echo "   • Package: ./deployment"
+        echo "   • Files deployed: $(find ./deployment -type f | wc -l)"
+        echo ""
+        echo "🌐 Your SmartSuiteX website should now be available at:"
+        echo "   • Azure URL: https://smartsuitex-fegtdvcrhmfsfccw.centralus-01.azurewebsites.net"
+        echo "   • Custom domain: https://smartsuitex.com"
+        echo ""
+        echo "⏱️ Note: It may take 2-5 minutes for changes to appear due to caching."
+        echo "🔄 If you still see the Microsoft page, try:"
+        echo "   1. Wait 5 minutes and refresh"
+        echo "   2. Clear browser cache (Ctrl+F5)"
+        echo "   3. Try incognito/private browsing mode"
