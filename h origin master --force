@@ -1,0 +1,5 @@
+[33mc48eea5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m Add Azure App Service deployment workflow and instructions for SmartSuiteX
+[33m646aa83[m feat: Enhanced Azure deployment with optimized workflow
+[33mb012e6e[m Update azure-deploy.yml
+[33m95a2603[m feat: Add Azure App Service deployment configuration
+[33m10c2edb[m Add or update the Azure App Service build and deployment workflow config
