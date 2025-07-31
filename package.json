@@ -1,0 +1,26 @@
+{
+  "name": "smartsuitex-website",
+  "version": "1.0.0",
+  "description": "SmartSuitex Website - A comprehensive SaaS platform",
+  "scripts": {
+    "dev": "cd smartsuitex-website/shadcn-ui && npm run dev",
+    "demo": "cd smartsuitex-website/shadcn-ui && npm run demo",
+    "build": "cd smartsuitex-website/shadcn-ui && npm run build",
+    "preview": "cd smartsuitex-website/shadcn-ui && npm run preview",
+    "lint": "cd smartsuitex-website/shadcn-ui && npm run lint",
+    "install-deps": "cd smartsuitex-website/shadcn-ui && npm install",
+    "change-port": "cd smartsuitex-website/shadcn-ui && node scripts/change-port.js"
+  },
+  "keywords": [
+    "saas",
+    "website",
+    "react",
+    "typescript",
+    "tailwindcss"
+  ],
+  "author": "SmartSuitex Team",
+  "license": "MIT",
+  "dependencies": {
+    "react-helmet-async": "^2.0.5"
+  }
+}
