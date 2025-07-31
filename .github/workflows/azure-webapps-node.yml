@@ -24,34 +24,53 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          smartsuitex-website/shadcn-ui/package-lock.json
 
-    - name: Install dependencies (root)
-      run: npm ci
+    - name: Install root dependencies
+      run: |
+        if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-    - name: Install dependencies (React app)
-      run: cd smartsuitex-website/shadcn-ui && npm ci
+    - name: Install React app dependencies
+      run: |
+        cd smartsuitex-website/shadcn-ui
+        if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
     - name: Build SmartSuiteX React application
       run: cd smartsuitex-website/shadcn-ui && npm run build
 
-    - name: Copy build files to deployment directory
+    - name: Create deployment package
       run: |
         mkdir -p deployment
-        cp -r smartsuitex-website/shadcn-ui/dist/* deployment/
-        cp web.config deployment/
+        # Copy built React app files
+        if [ -d "smartsuitex-website/shadcn-ui/dist" ]; then
+          cp -r smartsuitex-website/shadcn-ui/dist/* deployment/
+        else
+          echo "Build directory not found!"
+          exit 1
+        fi
+        # Copy web.config for Azure App Service
+        if [ -f "web.config" ]; then
+          cp web.config deployment/
+        fi
+        # List contents for debugging
+        echo "Deployment directory contents:"
+        ls -la deployment/
 
     - name: Upload artifact for deployment job
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: node-app
         path: deployment
+        retention-days: 1
 
   deploy:
     permissions:
@@ -61,18 +80,25 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     steps:
     - name: Download artifact from build job
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: node-app
+        path: ./deployment
+
+    - name: List downloaded files
+      run: |
+        echo "Downloaded files:"
+        ls -la ./deployment/
 
     - name: 'Deploy to Azure Web App'
       id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'Production'
-        package: .
+        package: './deployment'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
