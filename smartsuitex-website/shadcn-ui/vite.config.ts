@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { viteSourceLocator } from "@metagptx/vite-plugin-source-locator";
+import { copyFileSync } from "fs";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -10,6 +11,21 @@ export default defineConfig(({ mode }) => ({
       prefix: "mgx",
     }),
     react(),
+    // Custom plugin to copy web.config to dist folder
+    {
+      name: 'copy-web-config',
+      closeBundle() {
+        try {
+          copyFileSync(
+            path.resolve(__dirname, '../../web.config'),
+            path.resolve(__dirname, 'dist/web.config')
+          );
+          console.log('✅ web.config copied to dist folder');
+        } catch (error) {
+          console.warn('⚠️ Could not copy web.config:', error.message);
+        }
+      }
+    }
   ],
   resolve: {
     alias: {

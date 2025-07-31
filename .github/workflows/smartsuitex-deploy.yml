@@ -1,0 +1,72 @@
+# Deploy SmartSuiteX Website to Azure App Service
+# Auto-deploys on push to master branch
+
+name: Deploy SmartSuiteX to Azure
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  AZURE_WEBAPP_NAME: 'SmartSuiteX'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy SmartSuiteX
+    
+    steps:
+    - name: 🚀 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: 'smartsuitex-website/shadcn-ui/package-lock.json'
+    
+    - name: 📦 Install dependencies
+      working-directory: ./smartsuitex-website/shadcn-ui
+      run: |
+        npm ci --prefer-offline --no-audit
+        echo "✅ Dependencies installed successfully"
+    
+    - name: 🔨 Build React application
+      working-directory: ./smartsuitex-website/shadcn-ui
+      run: |
+        npm run build
+        echo "✅ Build completed successfully"
+        
+    - name: 📊 Verify build output
+      working-directory: ./smartsuitex-website/shadcn-ui
+      run: |
+        echo "📁 Build directory contents:"
+        ls -la dist/
+        echo "📏 Total build size:"
+        du -sh dist/
+        echo "🔍 Checking for essential files:"
+        if [ -f "dist/index.html" ]; then echo "✅ index.html found"; else echo "❌ index.html missing"; fi
+        if [ -f "dist/web.config" ]; then echo "✅ web.config found"; else echo "⚠️ web.config missing"; fi
+    
+    - name: 🌐 Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        slot-name: 'Production'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: './smartsuitex-website/shadcn-ui/dist'
+        
+    - name: 🎉 Deployment completed
+      run: |
+        echo "🚀 SmartSuiteX successfully deployed to Azure!"
+        echo "🌍 Your website is now live at: https://smartsuitex-fegtdvcrhmfsfccw.centralus-01.azurewebsites.net"
+        echo "📋 Features deployed:"
+        echo "  ✅ Multi-product pricing system (6 tabs)"
+        echo "  ✅ HR Management, CRM, ERP pricing"
+        echo "  ✅ IT Asset Management, BI, Automation Hub"
+        echo "  ✅ Responsive design with React Router"
+        echo "  ✅ Optimized for Azure App Service"
