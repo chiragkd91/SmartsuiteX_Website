@@ -101,6 +101,7 @@ const App = () => {
               <Route path="/contact" element={<Layout><ContactPage /></Layout>} />
               <Route path="/pricing" element={<Layout><PricingPage /></Layout>} />
               <Route path="/demo" element={<Layout><DemoPage /></Layout>} />
+              <Route path="/lander" element={<Layout><HomePage /></Layout>} />
               <Route path="/blog" element={<Layout><BlogPage /></Layout>} />
               <Route path="/faq" element={<Layout><FAQPage /></Layout>} />
               <Route path="/support" element={<Layout><SupportPage /></Layout>} />
