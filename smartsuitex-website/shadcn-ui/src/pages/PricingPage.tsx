@@ -27,7 +27,7 @@ export default function PricingPage() {
       <HeroSection
         title="Simple, Transparent Pricing"
         subtitle="Choose the plan that works best for your business needs"
-        backgroundImage="/images/backgrounds/Price Section.jpg"
+        backgroundImage="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1740"
       />
 
       {/* Pricing Plans */}
@@ -160,7 +160,7 @@ export default function PricingPage() {
           />
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url('/images/backgrounds/Price Section.jpg')` }}
+            style={{ backgroundImage: `url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1740')` }}
             aria-hidden="true"
           />
         </div>

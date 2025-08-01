@@ -18,7 +18,7 @@ export default function HomePage() {
       <HeroSection
         title="SmartSuitex - Complete Business Management Suite"
         subtitle="HR, ERP, CRM & Business Intelligence in One Integrated Platform"
-        backgroundImage="/images/backgrounds/digital-transformation.jpg"
+        backgroundImage="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1740"
       >
         <ResponsiveContainer maxWidth="4xl" padding="lg">
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4">

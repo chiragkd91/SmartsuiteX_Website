@@ -55,7 +55,7 @@ export function LoadingScreen({ isLoading, onLoadingComplete }: LoadingScreenPro
       <div className="absolute inset-0">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('/images/backgrounds/Backgound Loding.jpg')` }}
+          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&q=80&w=1740')` }}
         />
         <div className="absolute inset-0 bg-black/40" />
       </div>
