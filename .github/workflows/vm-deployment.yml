@@ -1,0 +1,149 @@
+# VM Deployment Workflow for SmartSuiteX Website
+# This workflow builds and deploys the React app to a Linux VM via SSH
+
+name: Deploy SmartSuiteX to VM
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.x'
+  BUILD_PATH: './smartsuitex-website/shadcn-ui'
+  DEPLOY_PATH: '/var/www/smartsuitex'  # Path on VM where the app will be deployed
+
+jobs:
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          smartsuitex-website/shadcn-ui/package-lock.json
+
+    - name: Install Root Dependencies
+      run: |
+        if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+    - name: Install React App Dependencies
+      run: |
+        cd ${{ env.BUILD_PATH }}
+        if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+    - name: Build React Application
+      run: |
+        cd ${{ env.BUILD_PATH }}
+        npm run build
+        echo "✅ Build completed successfully"
+        ls -la dist/
+
+    - name: Create Deployment Archive
+      run: |
+        cd ${{ env.BUILD_PATH }}
+        # Create a tar.gz archive of the built files
+        tar -czf ../../smartsuitex-build.tar.gz -C dist .
+        echo "📦 Deployment archive created"
+        ls -la ../../smartsuitex-build.tar.gz
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: smartsuitex-build
+        path: smartsuitex-build.tar.gz
+        retention-days: 1
+
+  deploy:
+    name: Deploy to VM
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: smartsuitex-build
+        path: ./
+
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+
+    - name: Add VM to Known Hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to VM
+      run: |
+        echo "🚀 Starting deployment to VM..."
+        
+        # Transfer the build archive to VM
+        scp smartsuitex-build.tar.gz ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/tmp/
+        
+        # Execute deployment commands on VM
+        ssh ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'EOF'
+          echo "📦 Extracting application files..."
+          
+          # Create deployment directory if it doesn't exist
+          sudo mkdir -p ${{ env.DEPLOY_PATH }}
+          
+          # Backup current deployment (if exists)
+          if [ -d "${{ env.DEPLOY_PATH }}/current" ]; then
+            sudo mv ${{ env.DEPLOY_PATH }}/current ${{ env.DEPLOY_PATH }}/backup-$(date +%Y%m%d-%H%M%S)
+          fi
+          
+          # Create new deployment directory
+          sudo mkdir -p ${{ env.DEPLOY_PATH }}/current
+          
+          # Extract new files
+          cd ${{ env.DEPLOY_PATH }}/current
+          sudo tar -xzf /tmp/smartsuitex-build.tar.gz
+          
+          # Set proper permissions
+          sudo chown -R www-data:www-data ${{ env.DEPLOY_PATH }}/current
+          sudo chmod -R 755 ${{ env.DEPLOY_PATH }}/current
+          
+          # Clean up temp file
+          rm /tmp/smartsuitex-build.tar.gz
+          
+          echo "✅ Application deployed successfully!"
+          echo "📁 Deployed to: ${{ env.DEPLOY_PATH }}/current"
+          echo "📊 File count: $(find ${{ env.DEPLOY_PATH }}/current -type f | wc -l)"
+        EOF
+
+    - name: Restart Nginx
+      run: |
+        ssh ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'EOF'
+          echo "🔄 Restarting Nginx..."
+          sudo systemctl reload nginx
+          sudo systemctl status nginx --no-pager
+          echo "✅ Nginx restarted successfully!"
+        EOF
+
+    - name: Deployment Summary
+      run: |
+        echo "🎉 Deployment completed successfully!"
+        echo ""
+        echo "📍 Deployment Details:"
+        echo "   • VM Host: ${{ secrets.VM_HOST }}"
+        echo "   • Deploy Path: ${{ env.DEPLOY_PATH }}/current"
+        echo "   • Nginx: Reloaded"
+        echo ""
+        echo "🌐 Your SmartSuiteX website should now be available at:"
+        echo "   • VM IP: http://${{ secrets.VM_HOST }}"
+        echo "   • Domain: https://smartsuitex.com (if configured)"
+        echo ""
+        echo "⏱️ Note: Changes should be visible immediately after Nginx reload."
