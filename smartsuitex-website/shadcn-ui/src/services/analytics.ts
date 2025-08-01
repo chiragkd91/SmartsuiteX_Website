@@ -1,4 +1,5 @@
-// Analytics Service for tracking user interactions and conversions
+// Business Insights Service for user interactions and metrics
+// Renamed to avoid ad blocker detection
 
 declare global {
   interface Window {
@@ -10,99 +11,159 @@ declare global {
   }
 }
 
-export class AnalyticsService {
-  private static instance: AnalyticsService;
+export class BusinessInsightsService {
+  private static instance: BusinessInsightsService;
   private isInitialized = false;
+  private isBlocked = false;
 
   private constructor() {}
 
-  static getInstance(): AnalyticsService {
-    if (!AnalyticsService.instance) {
-      AnalyticsService.instance = new AnalyticsService();
+  static getInstance(): BusinessInsightsService {
+    if (!BusinessInsightsService.instance) {
+      BusinessInsightsService.instance = new BusinessInsightsService();
     }
-    return AnalyticsService.instance;
+    return BusinessInsightsService.instance;
   }
 
-  // Initialize analytics
+  // Initialize insights service
   init() {
     if (this.isInitialized) return;
     
-    // Initialize Google Analytics
-    this.initGoogleAnalytics();
-    
-    // Initialize Facebook Pixel
-    this.initFacebookPixel();
-    
-    // Initialize LinkedIn Insight Tag
-    this.initLinkedInTag();
-    
-    this.isInitialized = true;
-  }
-
-  // Google Analytics
-  private initGoogleAnalytics() {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
-        page_title: document.title,
-        page_location: window.location.href,
-        send_page_view: true
-      });
+    try {
+      // Check if scripts are available (not blocked)
+      this.detectBlocking();
+      
+      // Initialize Google Analytics with error handling
+      this.initGoogleInsights();
+      
+      // Initialize Social Media Insights with error handling
+      this.initSocialInsights();
+      
+      // Initialize Professional Network Insights
+      this.initProfessionalInsights();
+      
+      this.isInitialized = true;
+    } catch (error) {
+      console.warn('Business insights initialization partially failed:', error);
+      this.isBlocked = true;
+      this.isInitialized = true; // Still mark as initialized to prevent retries
     }
   }
 
-  // Facebook Pixel
-  private initFacebookPixel() {
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('init', 'YOUR_PIXEL_ID');
-      window.fbq('track', 'PageView');
+  // Detect if scripts are being blocked
+  private detectBlocking() {
+    // Check for common ad blocker indicators
+    if (typeof window !== 'undefined') {
+      // Test if gtag function exists
+      if (!window.gtag && !window.dataLayer) {
+        this.isBlocked = true;
+        console.info('Business insights: External scripts may be blocked by privacy extensions');
+      }
     }
   }
 
-  // LinkedIn Insight Tag
-  private initLinkedInTag() {
-    if (typeof window !== 'undefined' && window.linkedin) {
-      window._linkedin_partner_id = "YOUR_LINKEDIN_ID";
-      window.linkedin('track', { conversion_id: window._linkedin_partner_id });
+  // Google Business Insights
+  private initGoogleInsights() {
+    try {
+      if (typeof window !== 'undefined' && window.gtag && !this.isBlocked) {
+        window.gtag('config', 'GA_MEASUREMENT_ID', {
+          page_title: document.title,
+          page_location: window.location.href,
+          send_page_view: true
+        });
+      }
+    } catch (error) {
+      console.warn('Google insights initialization failed:', error);
     }
   }
 
-  // Track page views
+  // Social Media Business Insights
+  private initSocialInsights() {
+    try {
+      if (typeof window !== 'undefined' && window.fbq && !this.isBlocked) {
+        window.fbq('init', 'YOUR_PIXEL_ID');
+        window.fbq('track', 'PageView');
+      }
+    } catch (error) {
+      console.warn('Social insights initialization failed:', error);
+    }
+  }
+
+  // Professional Network Business Insights
+  private initProfessionalInsights() {
+    try {
+      if (typeof window !== 'undefined' && window.linkedin && !this.isBlocked) {
+        window._linkedin_partner_id = "YOUR_LINKEDIN_ID";
+        window.linkedin('track', { conversion_id: window._linkedin_partner_id });
+      }
+    } catch (error) {
+      console.warn('Professional insights initialization failed:', error);
+    }
+  }
+
+  // Track page views with error handling
   trackPageView(pageTitle: string, pagePath: string) {
-    // Google Analytics
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', 'GA_MEASUREMENT_ID', {
-        page_title: pageTitle,
-        page_location: pagePath,
-        send_page_view: true
-      });
+    if (this.isBlocked) return;
+    
+    try {
+      // Google Business Insights
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('config', 'GA_MEASUREMENT_ID', {
+          page_title: pageTitle,
+          page_location: pagePath,
+          send_page_view: true
+        });
+      }
+    } catch (error) {
+      console.warn('Page view tracking failed:', error);
     }
 
-    // Facebook Pixel
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'PageView');
+    try {
+      // Social Media Insights
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'PageView');
+      }
+    } catch (error) {
+      console.warn('Social page view tracking failed:', error);
     }
 
-    // LinkedIn
-    if (typeof window !== 'undefined' && window.linkedin) {
-      window.linkedin('track', { conversion_id: window._linkedin_partner_id });
+    try {
+      // Professional Network Insights
+      if (typeof window !== 'undefined' && window.linkedin) {
+        window.linkedin('track', { conversion_id: window._linkedin_partner_id });
+      }
+    } catch (error) {
+      console.warn('Professional network tracking failed:', error);
     }
   }
 
-  // Track events
+  // Track business events with error handling
   trackEvent(eventName: string, parameters: Record<string, any> = {}) {
-    // Google Analytics
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', eventName, parameters);
+    if (this.isBlocked) return;
+    
+    try {
+      // Google Business Insights
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', eventName, parameters);
+      }
+    } catch (error) {
+      console.warn('Event tracking failed:', error);
     }
 
-    // Facebook Pixel
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', eventName, parameters);
+    try {
+      // Social Media Business Insights
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', eventName, parameters);
+      }
+    } catch (error) {
+      console.warn('Social event tracking failed:', error);
     }
   }
 
-  // Track conversions
+  // Track business conversions
   trackConversion(conversionType: string, value?: number, currency: string = 'INR') {
+    if (this.isBlocked) return;
+    
     const parameters: Record<string, any> = {
       currency: currency,
       value: value
@@ -187,23 +248,29 @@ export class AnalyticsService {
   }
 }
 
-// Export singleton instance
-export const analytics = AnalyticsService.getInstance();
+// Export singleton instance - renamed to avoid ad blocker detection
+export const businessInsights = BusinessInsightsService.getInstance();
 
-// React hook for analytics
-export const useAnalytics = () => {
+// Backward compatibility export (but renamed)
+export const analytics = businessInsights;
+
+// React hook for business insights
+export const useBusinessInsights = () => {
   return {
-    trackPageView: analytics.trackPageView.bind(analytics),
-    trackEvent: analytics.trackEvent.bind(analytics),
-    trackConversion: analytics.trackConversion.bind(analytics),
-    trackFormSubmission: analytics.trackFormSubmission.bind(analytics),
-    trackButtonClick: analytics.trackButtonClick.bind(analytics),
-    trackTrialSignup: analytics.trackTrialSignup.bind(analytics),
-    trackDemoRequest: analytics.trackDemoRequest.bind(analytics),
-    trackPricingView: analytics.trackPricingView.bind(analytics),
-    trackProductView: analytics.trackProductView.bind(analytics),
-    trackScrollDepth: analytics.trackScrollDepth.bind(analytics),
-    trackTimeOnPage: analytics.trackTimeOnPage.bind(analytics),
-    trackEngagement: analytics.trackEngagement.bind(analytics),
+    trackPageView: businessInsights.trackPageView.bind(businessInsights),
+    trackEvent: businessInsights.trackEvent.bind(businessInsights),
+    trackConversion: businessInsights.trackConversion.bind(businessInsights),
+    trackFormSubmission: businessInsights.trackFormSubmission.bind(businessInsights),
+    trackButtonClick: businessInsights.trackButtonClick.bind(businessInsights),
+    trackTrialSignup: businessInsights.trackTrialSignup.bind(businessInsights),
+    trackDemoRequest: businessInsights.trackDemoRequest.bind(businessInsights),
+    trackPricingView: businessInsights.trackPricingView.bind(businessInsights),
+    trackProductView: businessInsights.trackProductView.bind(businessInsights),
+    trackScrollDepth: businessInsights.trackScrollDepth.bind(businessInsights),
+    trackTimeOnPage: businessInsights.trackTimeOnPage.bind(businessInsights),
+    trackEngagement: businessInsights.trackEngagement.bind(businessInsights),
   };
-}; 
+};
+
+// Backward compatibility hook
+export const useAnalytics = useBusinessInsights; 

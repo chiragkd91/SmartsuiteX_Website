@@ -1,7 +1,12 @@
-# SmartSuiteX - Azure App Service Deployment Instructions
+# SmartSuiteX - Azure VM Deployment Instructions
 
 ## Overview
-This repository contains the SmartSuiteX website configured for automatic deployment to Azure App Service using GitHub Actions. Follow these steps to complete the setup.
+This repository contains the SmartSuiteX website configured for deployment to Azure VM with Nginx. The site works via IP address but needs proper nginx configuration for domain access.
+
+## Current Status
+- ✅ VM Working: Site accessible at http://20.51.127.168/
+- ❌ Domain Issue: smartsuitex.com shows nginx default page  
+- 🔧 Fix Needed: Configure nginx to serve React app
 
 ## Prerequisites
 1. An Azure subscription

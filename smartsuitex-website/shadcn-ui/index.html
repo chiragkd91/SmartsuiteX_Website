@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <!-- Favicon -->
-  <link rel="icon" href="https://public-frontend-cos.metadl.com/mgx/img/favicon.png" type="image/png">
-  <link rel="apple-touch-icon" href="https://public-frontend-cos.metadl.com/mgx/img/favicon.png">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/favicon.png">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
   <!-- Primary Meta Tags -->
@@ -133,25 +133,41 @@
   }
   </script>
 
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+  <!-- Business Insights & Performance Monitoring -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID" 
+          onerror="console.warn('Business insights script unavailable - using fallback tracking')"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'GA_MEASUREMENT_ID', {
-      page_title: 'SmartSuitex - Complete Business Management Suite',
-      page_location: window.location.href,
-      send_page_view: true
-    });
+    // Business insights initialization with fallback
+    try {
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_MEASUREMENT_ID', {
+        page_title: 'SmartSuitex - Complete Business Management Suite',
+        page_location: window.location.href,
+        send_page_view: true
+      });
+    } catch (error) {
+      console.warn('Business insights initialization failed:', error);
+    }
   </script>
 
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+  <!-- Performance & User Experience Monitor -->
+  <script>
+    // Graceful initialization with error handling
+    (function(w,d,s,l,i){
+      try {
+        w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;
+        j.onerror=function(){console.warn('Performance monitor script blocked')};
+        f.parentNode.insertBefore(j,f);
+      } catch (error) {
+        console.warn('Performance monitor initialization failed:', error);
+      }
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');
+  </script>
 
   <!-- Critical CSS for better performance -->
   <style>
@@ -217,9 +233,10 @@
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
+  <!-- Performance Monitor (no JavaScript fallback) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  height="0" width="0" style="display:none;visibility:hidden" 
+  title="User Experience Analytics"></iframe></noscript>
 
   <!-- Loading fallback -->
   <div id="loading" class="loading">
